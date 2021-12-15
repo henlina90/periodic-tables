@@ -1,0 +1,9 @@
+body {
+  margin: 0;
+}
+
+.side-bar {
+  background-color: #252529;
+  min-width: 200px;
+  min-height: 100vh;
+}
