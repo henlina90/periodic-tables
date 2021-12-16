@@ -16,7 +16,7 @@ const tableExists = async (req, res, next) => {
 };
 
 // Validation for new tables
-const validateNewTable = async (req, res, next) => {
+const checkNewTable = async (req, res, next) => {
   if (!req.body.data) return next({ status: 400, message: "Data is missing" });
 
   const { table_name, capacity, reservation_id } = req.body.data;
@@ -46,7 +46,7 @@ const validateNewTable = async (req, res, next) => {
 };
 
 // Validation for table seating by reservation id
-const validateUpdate = async (req, res, next) => {
+const checkUpdate = async (req, res, next) => {
   if (!req.body.data) return next({ status: 400, message: "Data is missing" });
 
   const { reservation_id } = req.body.data;
@@ -68,7 +68,7 @@ const validateUpdate = async (req, res, next) => {
 };
 
 // Validation for table capacity
-const validateCapacity = async (req, res, next) => {
+const checkCapacity = async (req, res, next) => {
   const { table_id } = req.params;
   const table = await service.read(table_id);
   const reservation = res.locals.reservation;
@@ -147,10 +147,10 @@ async function destroy(req, res, next) {
 module.exports = {
   list: [asyncError(list)],
   read: [asyncError(tableExists), asyncError(read)],
-  create: [asyncError(validateNewTable), asyncError(create)],
+  create: [asyncError(checkNewTable), asyncError(create)],
   update: [
-    asyncError(validateUpdate),
-    asyncError(validateCapacity),
+    asyncError(checkUpdate),
+    asyncError(checkCapacity),
     asyncError(update),
   ],
   delete: [asyncError(tableExists), asyncError(destroy)],

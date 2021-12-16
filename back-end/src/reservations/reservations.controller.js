@@ -9,7 +9,7 @@ const reservationExists = async (req, res, next) => {
   if (!data)
     return next({
       status: 404,
-      message: `Reservation ID: ${reservation_id} Not Found`,
+      message: `reservation_id: ${reservation_id} not found`,
     });
   else {
     res.locals.reservation = data;
@@ -18,7 +18,7 @@ const reservationExists = async (req, res, next) => {
 };
 
 //  Validation for new reservation
-const newReservationIsValid = async (req, res, next) => {
+const checkNewReservation = async (req, res, next) => {
   const {
     data: {
       first_name,
@@ -44,7 +44,7 @@ const newReservationIsValid = async (req, res, next) => {
   }
 
   if (!mobile_number) {
-    return next({ status: 400, message: "mobile_number" });
+    return next({ status: 400, message: "mobile_number is missing" });
   }
 
   if (!people || typeof people !== "number") {
@@ -69,11 +69,11 @@ const newReservationIsValid = async (req, res, next) => {
   }
 
   if (!reservation_date.match(/\d{4}-\d{2}-\d{2}/)) {
-    return next({ status: 400, message: "reservation_date is invalid!" });
+    return next({ status: 400, message: "reservation_date is invalid" });
   }
 
   if (!reservation_time.match(/\d{2}:\d{2}/)) {
-    return next({ status: 400, message: "reservation_time is invalid!" });
+    return next({ status: 400, message: "reservation_time is invalid" });
   }
 
   if (status === "seated") {
@@ -96,7 +96,7 @@ const newReservationIsValid = async (req, res, next) => {
 };
 
 // Validation for business operation hours
-const dateValidator = async (req, res, next) => {
+const checkDate = async (req, res, next) => {
   const date = new Date(res.locals.reservation.reservation_date);
   const reservationTime = new Date(
     `${res.locals.reservation.reservation_date} ${res.locals.reservation.reservation_time}`
@@ -120,7 +120,7 @@ const dateValidator = async (req, res, next) => {
 };
 
 // Checks if time is valid
-const timelineValidator = async (req, res, next) => {
+const checkTime = async (req, res, next) => {
   const time = res.locals.reservation.reservation_time;
   let hour = time[0] + time[1];
   let minutes = time[3] + time[4];
@@ -150,7 +150,7 @@ const timelineValidator = async (req, res, next) => {
 };
 
 // Validates reservations status
-const validateStatusUpdate = async (req, res, next) => {
+const checkStatusUpdate = async (req, res, next) => {
   const currentStatus = res.locals.reservation.status;
   const { status } = req.body.data;
 
@@ -169,9 +169,7 @@ const validateStatusUpdate = async (req, res, next) => {
 };
 
 // Validation for reservation update
-const validateUpdate = async (req, res, next) => {
-  if (!req.body.data) return next({ status: 400, message: "Data Missing!" });
-
+const checkUpdate = async (req, res, next) => {
   const {
     first_name,
     last_name,
@@ -181,23 +179,33 @@ const validateUpdate = async (req, res, next) => {
     reservation_time,
   } = req.body.data;
 
+  if (!req.body.data) {
+    return next({ status: 400, message: "Data is missing" });
+  }
+
   if (!reservation_date)
     return next({
       status: 400,
-      message: "Be sure to include reservation_date",
+      message: "reservation_date is invalid or missing",
     });
 
   if (!reservation_time)
     return next({
       status: 400,
-      message: "Be sure to include reservation_time",
+      message: "reservation_time is invalid or missing",
     });
 
   if (!reservation_date.match(/\d{4}-\d{2}-\d{2}/))
-    return next({ status: 400, message: "reservation_date is invalid!" });
+    return next({
+      status: 400,
+      message: "reservation_date is invalid or missing",
+    });
 
   if (!reservation_time.match(/\d{2}:\d{2}/))
-    return next({ status: 400, message: "reservation_time is invalid!" });
+    return next({
+      status: 400,
+      message: "reservation_time is invalid or missing",
+    });
 
   res.locals.reservation = {
     first_name,
@@ -279,22 +287,22 @@ module.exports = {
   list: [asyncError(list)],
   read: [asyncError(reservationExists), asyncError(read)],
   create: [
-    asyncError(newReservationIsValid),
-    asyncError(dateValidator),
-    asyncError(timelineValidator),
+    asyncError(checkNewReservation),
+    asyncError(checkDate),
+    asyncError(checkTime),
     asyncError(create),
   ],
   updateStatus: [
     asyncError(reservationExists),
-    asyncError(validateStatusUpdate),
+    asyncError(checkStatusUpdate),
     asyncError(updateStatus),
   ],
   update: [
-    asyncError(newReservationIsValid),
+    asyncError(checkNewReservation),
     asyncError(reservationExists),
-    asyncError(validateUpdate),
-    asyncError(dateValidator),
-    asyncError(timelineValidator),
+    asyncError(checkUpdate),
+    asyncError(checkDate),
+    asyncError(checkTime),
     asyncError(update),
   ],
 };
